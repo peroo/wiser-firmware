@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Account- and hub-specific cloud responses
+private/
+wiser-account-summary.json
+wiser-configuration.json
+wiser-devices.json
+wiser-sites.json
+wiser-relay-*.json
+
+# Large/proprietary inputs and downloaded firmware
+*.apk
+*.dll
+*.tar
+firmware/

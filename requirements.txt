@@ -1,0 +1,4 @@
+requests>=2.31
+capstone>=5
+dnfile>=0.15
+dncil>=1.0
