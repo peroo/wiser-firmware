@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 venv/
 .env
+.env.tmp
 
 # Account- and hub-specific cloud responses
 private/

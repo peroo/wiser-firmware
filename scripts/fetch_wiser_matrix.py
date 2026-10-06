@@ -8,6 +8,7 @@ import base64
 import getpass
 import json
 import os
+import shlex
 from pathlib import Path
 
 import requests
@@ -16,6 +17,45 @@ LOGIN_URL = "https://api-nl.wiserair.com/Login"
 CLOUD_URL = "https://api-nl.wiserair.com"
 RELAY_PATH = "/api/wcs2/rpc/public_genie/web_action"
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+ENV_PATH = REPOSITORY_ROOT / ".env"
+
+
+def load_env(path: Path = ENV_PATH) -> None:
+    """Load the repository's simple shell-compatible .env file."""
+    if not path.exists():
+        return
+    for raw_line in path.read_text().splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        try:
+            values = shlex.split(raw_value, comments=False, posix=True)
+        except ValueError:
+            continue
+        if key and values:
+            os.environ.setdefault(key, values[0])
+
+
+def save_login(email: str, password: str, path: Path = ENV_PATH) -> None:
+    """Persist successful account credentials without disturbing other values."""
+    retained = []
+    if path.exists():
+        retained = [
+            line for line in path.read_text().splitlines()
+            if not line.startswith(("WISER_EMAIL=", "WISER_PASSWORD="))
+        ]
+    retained.extend((f"WISER_EMAIL={shlex.quote(email)}", f"WISER_PASSWORD={shlex.quote(password)}"))
+    temporary = path.with_suffix(path.suffix + ".tmp")
+    temporary.write_text("\n".join(retained) + "\n")
+    temporary.chmod(0o600)
+    temporary.replace(path)
+    path.chmod(0o600)
+
+
+load_env()
 APP_AUTHORIZATION = os.environ.get("WISER_APP_AUTHORIZATION")
 
 
@@ -70,6 +110,7 @@ def fetch_matrix(email: str, password: str, hub: int, private_dir: Path) -> dict
     token = login.get("access_token") or login.get("accessToken") or login.get("AccessToken")
     if not token:
         raise RuntimeError(f"login response contained no recognized access token: {sorted(login)}")
+    save_login(email, password)
 
     auth = {"Authorization": f"Bearer {token}"}
     account_response = session.get(CLOUD_URL + "/api/account/summary", headers=auth, timeout=30)
@@ -112,8 +153,8 @@ def main() -> int:
     parser.add_argument("--private-dir", type=Path, default=Path("private"))
     args = parser.parse_args()
 
-    email = args.email or input("Wiser account email: ").strip()
-    password = args.password or getpass.getpass("Wiser account password: ")
+    email = args.email or os.environ.get("WISER_EMAIL") or input("Wiser account email: ").strip()
+    password = args.password or os.environ.get("WISER_PASSWORD") or getpass.getpass("Wiser account password: ")
     matrix = fetch_matrix(email, password, args.hub, args.private_dir)
     password = ""
     args.output.write_text(json.dumps(matrix, indent=2, ensure_ascii=False) + "\n")

@@ -15,9 +15,6 @@ python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 
-set -a
-. ./.env
-set +a
 python scripts/fetch_wiser_matrix.py
 python scripts/download_wiser_firmware.py wiser-matrix.json
 python scripts/check_wiser_updates.py
@@ -25,8 +22,11 @@ python scripts/check_wiser_updates.py
 
 `WISER_APP_AUTHORIZATION` must contain the application authorization value from
 Wiser Home's production API configuration. Copy `.env.example` to `.env` and
-populate it locally; `.env` is deliberately ignored and not committed.
-The fetcher prompts for the Wiser Home email and password, writes private raw
+populate it locally; `.env` is deliberately ignored and not committed. The
+tools load it automatically. If account credentials are absent, the fetcher
+prompts for them and saves them to `.env` only after a successful login.
+
+The fetcher writes private raw
 responses under `private/`, and writes a normalized `wiser-matrix.json` in the
 current directory. Passwords and bearer tokens are not written to disk.
 
@@ -61,4 +61,5 @@ See [docs/wiser.md](docs/wiser.md) for the protocol and file-name format and
 Treat files under `private/` as sensitive. They can contain account, site, hub,
 and device identifiers. The Wiser application's HTTP Basic client credential is
 required to emulate the app, but it is intentionally supplied at runtime rather
-than committed.
+than committed. `.env` contains plaintext account credentials, is created with
+`0600` permissions, and must remain untracked.

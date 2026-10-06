@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -56,8 +57,8 @@ def main() -> int:
     if args.matrix:
         matrix = find_matrix(json.loads(args.matrix.read_text()))
     else:
-        email = args.email or input("Wiser account email: ").strip()
-        password = args.password or getpass.getpass("Wiser account password: ")
+        email = args.email or os.environ.get("WISER_EMAIL") or input("Wiser account email: ").strip()
+        password = args.password or os.environ.get("WISER_PASSWORD") or getpass.getpass("Wiser account password: ")
         matrix = fetch_matrix(email, password, args.hub, args.private_dir)
         password = ""
     current = snapshot(matrix)

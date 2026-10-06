@@ -37,7 +37,9 @@ URL is formed as:
 `fetch_wiser_matrix.py` performs all of these steps and selects the first hub by
 default. Supply the application credential through `WISER_APP_AUTHORIZATION` and
 use `--hub N` when an account has multiple hubs. The credential is not included
-in this repository.
+in this repository. The scripts automatically load the ignored repository
+`.env`; after a successful interactive login they save `WISER_EMAIL` and
+`WISER_PASSWORD` there with owner-only permissions for subsequent checks.
 
 ## Checking for updates
 
