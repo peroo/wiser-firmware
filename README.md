@@ -15,14 +15,17 @@ python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 
-export WISER_APP_AUTHORIZATION='Basic ...'
+set -a
+. ./.env
+set +a
 python scripts/fetch_wiser_matrix.py
 python scripts/download_wiser_firmware.py wiser-matrix.json
 python scripts/check_wiser_updates.py
 ```
 
 `WISER_APP_AUTHORIZATION` must contain the application authorization value from
-Wiser Home's production API configuration. It is deliberately not committed.
+Wiser Home's production API configuration. Copy `.env.example` to `.env` and
+populate it locally; `.env` is deliberately ignored and not committed.
 The fetcher prompts for the Wiser Home email and password, writes private raw
 responses under `private/`, and writes a normalized `wiser-matrix.json` in the
 current directory. Passwords and bearer tokens are not written to disk.
